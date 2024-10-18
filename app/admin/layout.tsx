@@ -1,12 +1,11 @@
 // app/admin/layout.tsx
-import { checkAuth } from '../utils/auth';
+import { checkAuth } from '@/app/utils/auth';
+import { redirect } from 'next/navigation';
 
-export default async function AdminLayout({
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  await checkAuth();
-  
   return <>{children}</>;
 }

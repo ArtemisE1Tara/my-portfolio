@@ -1,13 +1,12 @@
 // app/utils/auth.ts
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
 import * as crypto from 'crypto';
+import { cookies } from 'next/headers';
 
 // Function to hash password
 export function hashPassword(password: string): string {
   return crypto
     .createHash('sha256')
-    .update(password + process.env.ADMIN_PASSWORD_SALT || '')
+    .update(password + process.env.ADMIN_PASSWORD_SALT)
     .digest('hex');
 }
 
@@ -19,30 +18,27 @@ export function createSessionToken(username: string): string {
     .digest('hex');
 }
 
-// Middleware to check authentication
-export async function checkAuth() {
-  const cookieStore = cookies();
-  const sessionToken = cookieStore.get('admin_session');
-  
-  if (!sessionToken || sessionToken.value !== getStoredSessionToken()) {
-    redirect('/admin/login');
-  }
-}
-
 // Get stored session token
 export function getStoredSessionToken(): string | null {
-  const token = global as any;
+  const token = global as { _sessionToken?: string };
   return token._sessionToken || null;
 }
 
 // Store session token
 export function storeSessionToken(token: string) {
-  const global_ = global as any;
+  const global_ = global as { _sessionToken?: string };
   global_._sessionToken = token;
 }
 
 // Clear session token
 export function clearSessionToken() {
-  const global_ = global as any;
+  const global_ = global as { _sessionToken?: string };
   delete global_._sessionToken;
+}
+
+export async function checkAuth() {
+  const cookieStore = cookies();
+  const sessionToken = cookieStore.get('admin_session');
+
+  return sessionToken ? true : false;
 }

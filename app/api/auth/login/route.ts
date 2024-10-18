@@ -1,48 +1,31 @@
 // app/api/auth/login/route.ts
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { clearSessionToken, createSessionToken, hashPassword, storeSessionToken } from '../../../utils/auth';
+import { hashPassword, createSessionToken } from '@/app/utils/auth';
 
 export async function POST(request: Request) {
-  try {
-    const { username, password } = await request.json();
+  const { username, password } = await request.json();
 
-    // Check credentials
-    if (
-      username === process.env.ADMIN_USERNAME &&
-      hashPassword(password) === hashPassword(process.env.ADMIN_PASSWORD!)
-    ) {
-      // Create session token
-      const sessionToken = createSessionToken(username);
-      storeSessionToken(sessionToken);
+  // Validate credentials (replace with your actual validation logic)
+  const validUsername = process.env.ADMIN_USERNAME;
+  const validPasswordHash = process.env.ADMIN_PASSWORD_HASH;
 
-      // Set cookie
-      cookies().set('admin_session', sessionToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 7 * 24 * 60 * 60, // 1 week
-        path: '/',
-      });
+  if (username === validUsername && hashPassword(password) === validPasswordHash) {
+    const sessionToken = createSessionToken(username);
 
-      return NextResponse.json({ success: true });
-    }
+    const response = NextResponse.json({ success: true });
+    response.cookies.set('admin_session', sessionToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 60 * 60 * 24, // 1 day
+      path: '/',
+    });
 
-    return NextResponse.json(
-      { error: 'Invalid credentials' },
-      { status: 401 }
-    );
-  } catch {
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return response;
+  } else {
+    return NextResponse.json({ success: false, message: 'Invalid credentials' }, { status: 401 });
   }
 }
 
-// app/api/auth/logout/route.ts
-export async function logoutPOST() {
-  cookies().delete('admin_session');
-  clearSessionToken();
-  return NextResponse.json({ success: true });
-}
+
+
