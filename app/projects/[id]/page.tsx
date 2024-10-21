@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import Link from 'next/link';
 
 // Initialize Supabase client
 const supabase = createClient(

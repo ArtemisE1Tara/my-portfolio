@@ -104,7 +104,7 @@ export default async function Home() {
               <Card key={testimonial.id} className="flex flex-col">
                 <CardContent className="flex-1 pt-6">
                   <blockquote className="relative">
-                    <p className="text-lg italic text-gray-700">"{testimonial.content}"</p>
+                    <p className="text-lg italic text-gray-700">&quot;{testimonial.content}&quot;</p>
                     <footer className="mt-4 text-right text-gray-600">
                       — {testimonial.name}
                     </footer>

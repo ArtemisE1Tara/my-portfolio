@@ -29,7 +29,7 @@ export default function LoginPage() {
         const data = await response.json();
         setError(data.message || 'Login failed');
       }
-    } catch (err) {
+    } catch {
       setError('An error occurred. Please try again.');
     } finally {
       setIsLoading(false);
