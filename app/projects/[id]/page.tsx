@@ -10,7 +10,7 @@ const supabase = createClient(
 async function getProjectData(id: string) {
   const { data: project, error } = await supabase
     .from('projects')
-    .select('')
+    .select('id, title, description, details, file_url, created_at')
     .eq('id', id)
     .single(); // Fetch a single project based on the ID
 
@@ -41,7 +41,7 @@ export default async function ProjectPage({ params }: { params: { id: string } }
           <h2 className="text-2xl font-semibold mb-4">Details</h2>
           <p>{project.details}</p>
 
-          {/* If you have files or sources, you can list them here */}
+          {/* If you have files or sources, you can list them here 
           {project.files && project.files.length > 0 && (
             <div className="mt-6">
               <h3 className="text-xl font-semibold">Files:</h3>
@@ -56,6 +56,7 @@ export default async function ProjectPage({ params }: { params: { id: string } }
               </ul>
             </div>
           )}
+            */}
         </CardContent>
       </Card>
     </div>

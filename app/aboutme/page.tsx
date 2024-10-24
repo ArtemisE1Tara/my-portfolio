@@ -20,7 +20,7 @@ async function getAboutMeData() {
 
   const { data: experience, error: experienceError } = await supabase
     .from('experience')
-    .select('');
+    .select('id, company, role, description, start_year, end_year');
 
   if (aboutMeError) {
     console.error('Error fetching About Me:', aboutMeError);
