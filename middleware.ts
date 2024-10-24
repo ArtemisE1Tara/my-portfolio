@@ -1,29 +1,38 @@
 // middleware.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { isSessionExpired } from '@/app/utils/auth';
+import { logger } from '@/app/utils/logger';
 
 export function middleware(request: NextRequest) {
-  const isAdminRoute = request.nextUrl.pathname.startsWith('/admin');
-  const isLoginRoute = request.nextUrl.pathname === '/admin/login';
-  const isAuthRoute = request.nextUrl.pathname.startsWith('/api/auth');
-  const session = request.cookies.get('admin_session');
+  try {
+    const isAdminRoute = request.nextUrl.pathname.startsWith('/admin');
+    const isLoginRoute = request.nextUrl.pathname === '/admin/login';
+    const isAuthRoute = request.nextUrl.pathname.startsWith('/api/auth');
+    const sessionToken = request.cookies.get('admin_session')?.value;
 
-  if (isAdminRoute) {
-    if (isLoginRoute || isAuthRoute) {
-      // If user is already logged in, redirect to dashboard
-      if (session) {
-        return NextResponse.redirect(new URL('/admin/dashboard', request.url));
+    if (isAdminRoute) {
+      if (isLoginRoute || isAuthRoute) {
+        // If user is already logged in, redirect to dashboard
+        if (sessionToken && !isSessionExpired(sessionToken)) {
+          logger.info('Redirecting logged-in user to dashboard');
+          return NextResponse.redirect(new URL('/admin/dashboard', request.url));
+        }
+        return NextResponse.next();
       }
-      return NextResponse.next();
+
+      // For all other admin routes, check for valid session
+      if (!sessionToken || isSessionExpired(sessionToken)) {
+        logger.warn('Unauthorized access attempt to admin route');
+        return NextResponse.redirect(new URL('/admin/login', request.url));
+      }
     }
 
-    // For all other admin routes, check for session
-    if (!session) {
-      return NextResponse.redirect(new URL('/admin/login', request.url));
-    }
+    return NextResponse.next();
+  } catch (error) {
+    logger.error('Error in middleware', error);
+    return NextResponse.redirect(new URL('/error', request.url));
   }
-
-  return NextResponse.next();
 }
 
 export const config = {

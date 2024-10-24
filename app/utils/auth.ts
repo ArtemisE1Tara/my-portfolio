@@ -1,6 +1,8 @@
 // app/utils/auth.ts
 import * as crypto from 'crypto';
 import { cookies } from 'next/headers';
+import { logger } from './logger';
+import jwt from 'jsonwebtoken';
 
 // Function to hash password
 export function hashPassword(password: string): string {
@@ -12,10 +14,8 @@ export function hashPassword(password: string): string {
 
 // Function to create session token
 export function createSessionToken(username: string): string {
-  return crypto
-    .createHash('sha256')
-    .update(username + Date.now().toString() + (process.env.SESSION_SECRET || ''))
-    .digest('hex');
+  const expirationTime = Math.floor(Date.now() / 1000) + (24 * 60 * 60); // 24 hours from now
+  return jwt.sign({ username, exp: expirationTime }, process.env.SESSION_SECRET || 'fallback_secret');
 }
 
 // Get stored session token
@@ -37,8 +37,34 @@ export function clearSessionToken() {
 }
 
 export async function checkAuth() {
-  const cookieStore = cookies();
-  const sessionToken = cookieStore.get('admin_session');
+  try {
+    const cookieStore = cookies();
+    const sessionToken = cookieStore.get('admin_session');
 
-  return sessionToken ? true : false;
+    if (sessionToken && !isSessionExpired(sessionToken.value)) {
+      logger.info('Valid session found');
+      return true;
+    } else {
+      logger.info('No valid session found');
+      return false;
+    }
+  } catch (error) {
+    logger.error('Error checking authentication', error);
+    return false;
+  }
+}
+
+export function isSessionExpired(sessionToken: string): boolean {
+  try {
+    const decodedToken = jwt.decode(sessionToken) as jwt.JwtPayload;
+    if (!decodedToken || typeof decodedToken.exp === 'undefined') {
+      logger.warn('Invalid token structure');
+      return true;
+    }
+    const expirationTime = decodedToken.exp * 1000; // Convert to milliseconds
+    return Date.now() > expirationTime;
+  } catch (error) {
+    logger.error('Error checking session expiration', error);
+    return true; // If there's any error parsing the token, consider it expired
+  }
 }
