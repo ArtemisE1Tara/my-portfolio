@@ -54,8 +54,8 @@ export default async function Home() {
   return (
     <div className="container mx-auto py-10 px-4 sm:px-6 lg:px-8">
       <section className="text-center mb-16">
-        <h1 className="text-4xl font-bold mb-4">Welcome to My Portfolio</h1>
-        <p className="text-xl text-muted-foreground">Explore my projects and what people say about my work!</p>
+        <h1 className="text-4xl font-bold mb-4">OKAA Solutions</h1>
+        <p className="text-xl text-muted-foreground">Working to solve workplace problems with innovative AI/ML applications</p>
       </section>
 
       <section className="mb-16">

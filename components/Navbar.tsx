@@ -27,7 +27,7 @@ export const Navbar: React.FC<NavbarProps> = ({ children }) => {
         <div className="flex justify-between h-16 items-center">
           <div className="flex">
             <Link href="/" className="text-xl font-bold text-foreground">
-              My Portfolio
+              OKAA Solutions
             </Link>
           </div>
           {/* Desktop Navigation */}
