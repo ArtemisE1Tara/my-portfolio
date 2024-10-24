@@ -1,6 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Metadata } from 'next';
+import Link from 'next/link';
+import { FileText } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 
 export const revalidate = 0; // Add this to disable static generation
 
@@ -14,13 +18,14 @@ const supabase = createClient(
 async function getProjectsAndTestimonials() {
   const { data: projects, error: projectsError } = await supabase
     .from('projects')
-    .select('*') // Changed from empty string to '*'
-    .order('id', { ascending: false }); // Optional: show newest first
+    .select('*')
+    .order('id', { ascending: false });
   
   const { data: testimonials, error: testimonialsError } = await supabase
     .from('testimonials')
     .select('*')
-    .order('id', { ascending: false }); // Optional: show newest first
+    .order('id', { ascending: false })
+    .limit(3);
 
   if (projectsError) {
     console.error('Error fetching projects:', projectsError);
@@ -47,80 +52,83 @@ export default async function Home() {
   const { projects, testimonials } = await getProjectsAndTestimonials();
 
   return (
-    <div className="container mx-auto py-10">
-      {/* Hero Section */}
+    <div className="container mx-auto py-10 px-4 sm:px-6 lg:px-8">
       <section className="text-center mb-16">
         <h1 className="text-4xl font-bold mb-4">Welcome to My Portfolio</h1>
-        <p className="text-lg text-gray-600">Explore my projects and what people say about my work!</p>
+        <p className="text-xl text-muted-foreground">Explore my projects and what people say about my work!</p>
       </section>
 
-      {/* Projects Section */}
       <section className="mb-16">
         <h2 className="text-3xl font-semibold mb-8">Featured Projects</h2>
-        {projects.length > 0 ? (
+        {projects.length === 0 ? (
+          <p className="text-muted-foreground">No projects found.</p>
+        ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {projects.map((project) => (
               <Card key={project.id} className="flex flex-col">
                 <CardHeader>
-                  <CardTitle>{project.title}</CardTitle>
-                  <CardDescription>{project.description}</CardDescription>
+                  <CardTitle className="text-lg">{project.title}</CardTitle>
+                  <CardDescription className="line-clamp-2">{project.description}</CardDescription>
                 </CardHeader>
-                <CardContent className="flex-1">
-                  <p className="text-gray-600">{project.details}</p>
+                <CardContent className="flex-1 overflow-hidden">
+                  <Separator className="my-2" />
+                  <div className="relative">
+                    <p className="text-sm mb-4 break-words">
+                      {truncateText(project.details, 150)}
+                    </p>
+                  </div>
                   {project.file_url && (
                     <a 
-                      href={project.file_url}
-                      target="_blank"
+                      href={project.file_url} 
+                      target="_blank" 
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline block mt-4"
+                      className="flex items-center text-blue-600 hover:underline mt-2"
                     >
-                      View File
+                      <FileText className="mr-2 h-4 w-4" /> View File
                     </a>
                   )}
                 </CardContent>
                 <CardFooter>
-                  <a href={`/projects/${project.id}`} className="text-blue-600 hover:underline">
-                    Learn More
-                  </a>
+                  <Button asChild>
+                    <Link href={`/projects/${project.id}`}>Learn More</Link>
+                  </Button>
                 </CardFooter>
               </Card>
             ))}
           </div>
-        ) : (
-          <Card>
-            <CardContent className="text-center py-8">
-              <p className="text-gray-500">No projects available yet.</p>
-            </CardContent>
-          </Card>
+        )}
+        {projects.length > 5 && (
+          <div className="mt-8 text-center">
+            <Button asChild>
+              <Link href="/projects">View All Projects</Link>
+            </Button>
+          </div>
         )}
       </section>
 
-      {/* Testimonials Section */}
       <section>
         <h2 className="text-3xl font-semibold mb-8">Testimonials</h2>
-        {testimonials.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {testimonials.map((testimonial) => (
-              <Card key={testimonial.id} className="flex flex-col">
-                <CardContent className="flex-1 pt-6">
-                  <blockquote className="relative">
-                    <p className="text-lg italic text-gray-700">&quot;{testimonial.content}&quot;</p>
-                    <footer className="mt-4 text-right text-gray-600">
-                      — {testimonial.name}
-                    </footer>
-                  </blockquote>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <Card>
-            <CardContent className="text-center py-8">
-              <p className="text-gray-500">No testimonials available yet.</p>
-            </CardContent>
-          </Card>
-        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {testimonials.map((testimonial) => (
+            <Card key={testimonial.id} className="flex flex-col">
+              <CardContent className="flex-1 pt-6">
+                <blockquote className="relative">
+                  <p className="text-lg italic text-muted-foreground">&quot;{testimonial.content}&quot;</p>
+                  <footer className="mt-4 text-right text-sm font-medium">
+                    — {testimonial.name}
+                  </footer>
+                </blockquote>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </section>
     </div>
   );
+}
+
+// Helper function to truncate text
+function truncateText(text: string, maxLength: number) {
+  if (text.length <= maxLength) return text;
+  return text.substr(0, maxLength) + '...';
 }

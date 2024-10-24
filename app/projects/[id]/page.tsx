@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardDescription } from "@/components/ui/card";
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -34,8 +34,8 @@ export default async function ProjectPage({ params }: { params: { id: string } }
       <h1 className="text-4xl font-bold mb-8">{project.title}</h1>
       <Card>
         <CardHeader>
-          <CardTitle>{project.title}</CardTitle>
           <CardDescription>{project.description}</CardDescription>
+          <p className="">Created at: {project.created_at}</p>
         </CardHeader>
         <CardContent>
           <h2 className="text-2xl font-semibold mb-4">Details</h2>
