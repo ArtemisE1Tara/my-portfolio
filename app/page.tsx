@@ -5,6 +5,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { FileText } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import ChairDetector from '@/components/chair-detector';
 
 export const revalidate = 0; // Add this to disable static generation
 
@@ -60,6 +61,7 @@ export default async function Home() {
 
       <section className="mb-16">
         <h2 className="text-3xl font-semibold mb-8">Featured Projects</h2>
+        <ChairDetector />
         {projects.length === 0 ? (
           <p className="text-muted-foreground">No projects found.</p>
         ) : (
