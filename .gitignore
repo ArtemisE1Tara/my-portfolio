@@ -37,3 +37,6 @@ yarn-error.log*
 next-env.d.ts
 
 /scripts
+
+docs.pdf
+docs.txt

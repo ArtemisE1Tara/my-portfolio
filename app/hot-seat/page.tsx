@@ -3,7 +3,7 @@ import ImageCaptureAndAnalyze from '@/components/chair-detector';
 
 export const metadata = {
   title: 'HotSeat',
-  description: 'A computer vision backed crowd mnanagement solution',
+  description: 'A computer vision backed crowd management solution',
 };
 
 export default function HotSeatPage() {

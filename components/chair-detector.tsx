@@ -1,36 +1,25 @@
+// components/ChairDetector.tsx
 'use client';
-// components/ImageCaptureAndAnalyze.tsx
 import React, { useState } from 'react';
 import Image from 'next/image';
 import axios from 'axios';
 import { Button } from "@/components/ui/button";
 
-const ImageCaptureAndAnalyze: React.FC = () => {
+const ChairDetector: React.FC = () => {
     const [image, setImage] = useState<string | null>(null);
     const [analysisResult, setAnalysisResult] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
-    // Function to capture the image from user’s camera
+    // Function to capture image from Raspberry Pi camera
     const captureImage = async () => {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            const video = document.createElement('video');
-            video.srcObject = stream;
-            await video.play();
-
-            // Set up canvas to capture a frame from video
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            canvas.getContext('2d')?.drawImage(video, 0, 0);
-            const capturedImage = canvas.toDataURL('image/png');
-            
-            setImage(capturedImage);
-
-            // Stop the video stream
-            stream.getTracks().forEach(track => track.stop());
+            setIsLoading(true);
+            const response = await axios.get('/api/capture-image');
+            setImage(response.data.image);
         } catch (error) {
             console.error('Error capturing image:', error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -47,8 +36,6 @@ const ImageCaptureAndAnalyze: React.FC = () => {
                 { image },
                 { headers: { 'Content-Type': 'application/json' } }
             );
-
-            // Update to access the correct property from the API response
             setAnalysisResult(response.data.description);
         } catch (error) {
             console.error('Error analyzing image:', error);
@@ -61,18 +48,18 @@ const ImageCaptureAndAnalyze: React.FC = () => {
     return (
         <div className="space-y-4">
             {image && (
-              <div className="text-center">
-                <Image 
-                  src={image} 
-                  alt="Captured" 
-                  width={256} 
-                  height={192} 
-                  className="object-cover mt-4 mx-auto" 
-                />
-              </div>
+                <div className="text-center">
+                    <Image 
+                        src={image} 
+                        alt="Captured" 
+                        width={640} 
+                        height={480} 
+                        className="object-cover mt-4 mx-auto" 
+                    />
+                </div>
             )}
             <Button onClick={captureImage} disabled={isLoading} className="mx-4">
-                Capture Image
+                {isLoading ? 'Capturing...' : 'Capture Image'}
             </Button>
             <Button onClick={analyzeImage} disabled={!image || isLoading}>
                 {isLoading ? 'Analyzing...' : 'Analyze Image'}
@@ -83,8 +70,9 @@ const ImageCaptureAndAnalyze: React.FC = () => {
                     <p>{analysisResult}</p>
                 </div>
             )}
+            
         </div>
     );
 };
 
-export default ImageCaptureAndAnalyze;
+export default ChairDetector;

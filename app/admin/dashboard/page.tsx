@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { LogOut, Pencil, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
+import Stats from "@/components/stats"
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -36,7 +37,7 @@ export default function DashboardPage() {
   })
   const [editProjectId, setEditProjectId] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [activeTab, setActiveTab] = useState('projects')
+  const [activeTab, setActiveTab] = useState('statistics')
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [expandedProjects, setExpandedProjects] = useState<number[]>([])
 
@@ -201,7 +202,8 @@ export default function DashboardPage() {
         </Button>
       </div>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="statistics">Statistics</TabsTrigger>
           <TabsTrigger value="projects">Projects</TabsTrigger>
           <TabsTrigger value="create">{editProjectId ? 'Edit Project' : 'Create Project'}</TabsTrigger>
         </TabsList>
@@ -302,6 +304,9 @@ export default function DashboardPage() {
               </CardFooter>
             </Card>
           </form>
+        </TabsContent>
+        <TabsContent value="statistics">
+          <Stats />
         </TabsContent>
       </Tabs>
     </div>
