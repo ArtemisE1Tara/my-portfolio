@@ -1,11 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { FileText } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
-import ChairDetector from '@/components/chair-detector';
+import { ArrowRight } from 'lucide-react';
 
 export const revalidate = 0; // Add this to disable static generation
 
@@ -50,62 +48,40 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
-  const { projects, testimonials } = await getProjectsAndTestimonials();
+  const { testimonials } = await getProjectsAndTestimonials();
 
   return (
+    <>
     <div className="container mx-auto py-10 px-4 sm:px-6 lg:px-8">
       <section className="text-center mb-16">
         <h1 className="text-4xl font-bold mb-4">OKAA Solutions</h1>
         <p className="text-xl text-muted-foreground">Working to solve workplace problems with innovative AI/ML applications</p>
       </section>
 
-      <section className="mb-16">
-        <h2 className="text-3xl font-semibold mb-8">Featured Projects</h2>
-        <ChairDetector />
-        {projects.length === 0 ? (
-          <p className="text-muted-foreground">No projects found.</p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {projects.map((project) => (
-              <Card key={project.id} className="flex flex-col">
-                <CardHeader>
-                  <CardTitle className="text-lg">{project.title}</CardTitle>
-                  <CardDescription className="line-clamp-2">{project.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1 overflow-hidden">
-                  <Separator className="my-2" />
-                  <div className="relative">
-                    <p className="text-sm mb-4 break-words">
-                      {truncateText(project.details, 150)}
-                    </p>
-                  </div>
-                  {project.file_url && (
-                    <a 
-                      href={project.file_url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center text-blue-600 hover:underline mt-2"
-                    >
-                      <FileText className="mr-2 h-4 w-4" /> View File
-                    </a>
-                  )}
-                </CardContent>
-                <CardFooter>
-                  <Button asChild>
-                    <Link href={`/projects/${project.id}`}>Learn More</Link>
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        )}
-        {projects.length > 5 && (
-          <div className="mt-8 text-center">
-            <Button asChild>
-              <Link href="/projects">View All Projects</Link>
+      {/* New highlighted section */}
+      <section className="my-20 bg-primary text-primary-foreground rounded-lg shadow-lg overflow-hidden">
+        <div className="flex flex-col md:flex-row items-center">
+          <div className="md:w-1/2 p-8 md:p-12">
+            <h2 className="text-3xl font-bold mb-4">Discover Our Latest Project</h2>
+            <p className="text-lg mb-6">
+              A real time AI-powered occupancy detector that helps you find an empty seat in a crowded space.
+            </p>
+            <Button asChild variant="secondary" size="lg">
+              <Link href="/hot-seat">
+                Learn More <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
             </Button>
           </div>
-        )}
+          <div className="md:w-1/2 bg-primary-foreground p-8">
+            <div className="aspect-video rounded-lg overflow-hidden">
+              <img 
+                src="https://ucarecdn.com/11c5417a-de78-4578-ae8c-4296eb261106/-/preview/1000x562/" 
+                alt="AI Project Visualization" 
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+        </div>
       </section>
 
       <section>
@@ -126,11 +102,7 @@ export default async function Home() {
         </div>
       </section>
     </div>
+    </>
   );
 }
 
-// Helper function to truncate text
-function truncateText(text: string, maxLength: number) {
-  if (text.length <= maxLength) return text;
-  return text.substr(0, maxLength) + '...';
-}

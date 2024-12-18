@@ -1,5 +1,6 @@
-'use client'
+// 'use client';
 import { useState, useEffect } from "react";
+import { GetServerSideProps } from "next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -166,8 +167,8 @@ const StorageSkeleton = () => (
   </Card>
 );
 
-export default function Stats() {
-  const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
+export default function Stats({ initialSystemInfo }: { initialSystemInfo: SystemInfo | null }) {
+  const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(initialSystemInfo);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -195,7 +196,6 @@ export default function Stats() {
 
   return (
     <main className="min-h-screen bg-background flex flex-col gap-6">
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {!systemInfo ? (
           <>
@@ -204,8 +204,8 @@ export default function Stats() {
           </>
         ) : (
           <>
-            {/* Original System Info Card */}
-            <Card>
+           {/* Original System Info Card */}
+           <Card>
               <CardHeader>
                 <CardTitle className="text-orange-500">System Information</CardTitle>
               </CardHeader>
@@ -279,7 +279,7 @@ export default function Stats() {
                           {net.latency.toFixed(1)} ms
                         </Badge>
                       </div>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
+                      {/*<div className="grid grid-cols-2 gap-2 text-sm">
                         <div>
                           <span className="text-muted-foreground">Download:</span>{" "}
                           {(net.bytesReceived / 1024 / 1024).toFixed(2)} MB/s
@@ -288,7 +288,7 @@ export default function Stats() {
                           <span className="text-muted-foreground">Upload:</span>{" "}
                           {(net.bytesSent / 1024 / 1024).toFixed(2)} MB/s
                         </div>
-                      </div>
+                      </div>*/}
                     </div>
                   ))}
                 </div>
@@ -348,3 +348,23 @@ export default function Stats() {
     </main>
   );
 }
+
+export const getServerSideProps: GetServerSideProps = async () => {
+  try {
+    const res = await fetch(`${process.env.API_BASE_URL}/api/system-info`);
+    const data: SystemInfo = await res.json();
+
+    return {
+      props: {
+        initialSystemInfo: data,
+      },
+    };
+  } catch (error) {
+    console.error("SSR Fetch Error:", error);
+    return {
+      props: {
+        initialSystemInfo: null,
+      },
+    };
+  }
+};

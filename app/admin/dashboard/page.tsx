@@ -194,6 +194,7 @@ export default function DashboardPage() {
   }
 
   return (
+    <>
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
       <div className="flex justify-between items-center">
         <h1 className="text-4xl font-bold">Admin Dashboard</h1>
@@ -306,9 +307,10 @@ export default function DashboardPage() {
           </form>
         </TabsContent>
         <TabsContent value="statistics">
-          <Stats />
+          <Stats initialSystemInfo={null} />
         </TabsContent>
       </Tabs>
     </div>
+    </>
   )
 }

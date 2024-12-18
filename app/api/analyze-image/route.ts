@@ -26,10 +26,42 @@ export async function POST(request: NextRequest) {
           ],
         },
       ],
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "chair_analysis",
+          schema: {
+            type: "object",
+            properties: {
+              chairs: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    chair_id: { type: "number" },
+                    occupied: { type: "boolean" },
+                  },
+                  required: ["chair_id", "occupied"],
+                  additionalProperties: false,
+                },
+              },
+            },
+            required: ["chairs"],
+            additionalProperties: false,
+          },
+        },
+      },
     })
 
     console.log('OpenAI API response received')
-    return NextResponse.json({ description: response.choices[0].message.content })
+    const content = response.choices[0].message.content
+    let parsedResponse
+    if (content) {
+      parsedResponse = JSON.parse(content)
+    } else {
+      throw new Error("Response content is null")
+    }
+    return NextResponse.json(parsedResponse)
   } catch (error) {
     console.error("Error in API route:", error)
     return NextResponse.json({ error: "Error processing image" }, { status: 500 })
