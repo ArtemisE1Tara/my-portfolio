@@ -1,9 +1,6 @@
-// components/ChairDetector.tsx
 'use client';
 import React, { useState } from 'react';
-import Image from 'next/image';
 import axios from 'axios';
-import { Button } from "@/components/ui/button";
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 
@@ -14,6 +11,7 @@ const ChairDetector: React.FC = () => {
     const [chairs, setChairs] = useState<{ chair_id: number; occupied: boolean }[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [step, setStep] = useState<'start' | 'capturing' | 'analyzing' | 'complete'>('start');
 
     const handleRequest = async <T,>(url: string, method: 'get' | 'post', data?: T) => {
         setIsLoading(true);
@@ -31,14 +29,34 @@ const ChairDetector: React.FC = () => {
     };
 
     const captureImage = async () => {
+        setStep('capturing');
         const result = await handleRequest('/api/capture-image', 'get');
-        if (result) setImage(result.image);
+        if (result?.image) {
+            setImage(result.image);
+            analyzeImage(result.image);
+        } else {
+            setError('Failed to capture image.');
+            setStep('start');
+        }
     };
 
-    const analyzeImage = async () => {
-        if (!image) return;
+    const analyzeImage = async (image: string) => {
+        setStep('analyzing');
         const result = await handleRequest('/api/analyze-image', 'post', { image });
-        if (result) setChairs(result.chairs);
+        if (result?.chairs) {
+            setChairs(result.chairs);
+            setStep('complete');
+        } else {
+            setError('Analysis failed or returned no data.');
+            setStep('start');
+        }
+    };
+
+    const restartDetection = () => {
+        setImage(null);
+        setChairs([]);
+        setError(null);
+        setStep('start');
     };
 
     const occupiedCount = chairs.filter(({ occupied }) => occupied).length;
@@ -72,46 +90,58 @@ const ChairDetector: React.FC = () => {
     };
 
     return (
-        <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-center">Chair Occupancy Detection</h2>
-            {image && (
-                <div className="text-center">
-                    <h3 className="font-bold mt-4">Captured Image:</h3>
-                    <Image
-                        src={image}
-                        alt="Captured"
-                        width={640}
-                        height={480}
-                        className="object-cover mt-2 mx-auto"
-                    />
+        <div className="space-y-6">
+            <h2 className="text-3xl font-bold text-center mb-4">Chair Occupancy Detection</h2>
+
+            <div className="flex flex-col items-center space-y-4">
+                <div className="w-full max-w-md shadow-md rounded-lg p-4">
+                    <h3 className="text-lg font-semibold mb-2 text-center">Progress</h3>
+                    <div className="space-y-2">
+                        <div className={`p-2 rounded ${step === 'capturing' ? 'bg-gray-50' : 'bg-gray'}`}>
+                            {step === 'capturing' ? 'Capturing image...' : 'Image Capture'}
+                        </div>
+                        <div className={`p-2 rounded ${step === 'analyzing' ? 'bg-gray' : 'bg-gray'}`}>
+                            {step === 'analyzing' ? 'Analyzing image...' : 'Image Analysis'}
+                        </div>
+                        <div className={`p-2 rounded ${step === 'complete' ? 'bg-gray' : 'bg-gray'}`}>
+                            {step === 'complete' ? 'Complete' : 'Waiting for results'}
+                        </div>
+                    </div>
                 </div>
-            )}
-            
-            <div className="flex justify-center space-x-4">
-                <Button onClick={captureImage} disabled={isLoading}>
-                    {isLoading ? 'Capturing...' : 'Capture Image'}
-                </Button>
-                <Button onClick={analyzeImage} disabled={!image || isLoading}>
-                    {isLoading ? 'Analyzing...' : 'Analyze Image'}
-                </Button>
+
+                {error && (
+                    <div className="text-red-500 text-center mt-4">
+                        {error}
+                    </div>
+                )}
+
+                {step === 'start' && (
+                    <button
+                        onClick={captureImage}
+                        className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 shadow-md"
+                        disabled={isLoading}
+                    >
+                        Start Detection
+                    </button>
+                )}
+
+                {step === 'complete' && chairs.length > 0 && (
+                    <div className="mt-4 w-full max-w-lg bg-gray-100 p-4 rounded-lg shadow-md">
+                        <h3 className="font-bold mb-2">Analysis Result</h3>
+                        <p className="mb-2">
+                            {occupiedCount} out of {totalChairs} chairs are currently occupied (
+                            {((occupiedCount / totalChairs) * 100).toFixed(2)}%).
+                        </p>
+                        <Bar data={chartData} options={chartOptions} />
+                        <button
+                            onClick={restartDetection}
+                            className="bg-green-500 text-white px-4 py-2 rounded-lg mt-4 hover:bg-green-600 shadow-md"
+                        >
+                            Start Again
+                        </button>
+                    </div>
+                )}
             </div>
-
-            {error && (
-                <div className="text-red-500 text-center mt-4">
-                    {error}
-                </div>
-            )}
-
-            {chairs.length > 0 && (
-                <div className="mt-4 p-4 bg-gray-100 rounded shadow">
-                    <h3 className="font-bold mb-2" style={{color: 'black'}}>Analysis Result:</h3>
-                    <p className="mb-2" style={{color: 'black'}}>
-                        {occupiedCount} out of {totalChairs} chairs are currently occupied (
-                        {((occupiedCount / totalChairs) * 100).toFixed(2)}%).
-                    </p>
-                    <Bar data={chartData} options={chartOptions} />
-                </div>
-            )}
         </div>
     );
 };
